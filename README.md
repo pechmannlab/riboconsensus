@@ -1,1 +1,1 @@
-# Inferring heterogeneity of translation from ribosome profiling data
+# Inferring translational heterogeneity from ribosome profiling data
