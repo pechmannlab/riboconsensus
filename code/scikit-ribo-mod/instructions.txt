@@ -11,4 +11,4 @@ Download Scikit-ribo from https://github.com/hanfang/scikit-ribo
 Replace the file "scikit_ribo/plot_ribo_density_dict_noCDT.py" by the modified one provided. Instead of 
 preparing visual output, the scikit-ribo output is saved for further processing/analysis. 
 
-Install Scikit-ribo as per instructions and add the local path to the processing.py script. 
+Install Scikit-ribo as per instructions and add the local path to the pipeline.py script. 
