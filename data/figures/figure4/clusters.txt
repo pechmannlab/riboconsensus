@@ -1,0 +1,3 @@
+category	cluster	not
+DT	5383	462
+BG	27051	197415

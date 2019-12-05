@@ -1,0 +1,14 @@
+Our pipeline requires a modified version of the Scikit-ribo tool to process ribosome profiling data. 
+
+Download Scikit-ribo from https://github.com/hanfang/scikit-ribo
+
+#### - Accurate inference and robust modelling of translation dynamics at codon resolution with Riboseq data
+#### https://github.com/hanfang/scikit-ribo
+#### Han Fang
+#### Stony Brook University & Cold Spring Harbor Laboratory
+
+
+Replace the file "scikit_ribo/plot_ribo_density_dict_noCDT.py" by the modified one provided. Instead of 
+preparing visual output, the scikit-ribo output is saved for further processing/analysis. 
+
+Install Scikit-ribo as per instructions and add the local path to the processing.py script. 
