@@ -5,10 +5,11 @@ import pickle
 
 
 
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ 
+
 def test_ssb(kmertable, data_mc, data_mm, ssb):
     """
     get enrichment/density profiles of RD outside tunnel assoc'd with feature
+    first: logical whether to test only first binding site or all
     """
  
     L = 70
@@ -22,17 +23,18 @@ def test_ssb(kmertable, data_mc, data_mm, ssb):
         output = np.zeros(( len(ssb), L ))
 
         for i in range( len(ssb) ):
-            current_orf = ssb.loc[i]['geneID']
+            current_orf = ssb.loc[i]['ORF']
+
             if current_orf in data_mc.keys():
-                current_start = ssb.loc[i]['site_start']
-                current_order = ssb.loc[i]['order']
+                current_start = ssb.loc[i]['Start'] - 1 - 30    # python indexing, plus margin for plotting
+                current_order = ssb.loc[i]['Order'] 
                 current_kmertable = kmertable[kmertable['ORF']==current_orf]
 
                 current_mc = data_mc[current_orf]
                 current_mm = data_mm[current_orf]
                 current_mc[current_mm == False] = np.nan 
-               
-                if current_start < len(current_mc) - L: 
+        
+                if current_start < len(current_mc) - L and current_start > 20: 
 
                     if random:
                         rand_mc = np.copy(current_mc[(current_start):(current_start+L)])
@@ -49,6 +51,7 @@ def test_ssb(kmertable, data_mc, data_mm, ssb):
                             output[i,:] = domain_mc
 
         output = output[np.nansum(output,1)>0,:]
+        print(output.shape)
         output = np.nansum(output,0) / np.sum(np.isnan(output)==False,0)  
 
         return output
@@ -63,11 +66,11 @@ def test_ssb(kmertable, data_mc, data_mm, ssb):
         local_class = pd.DataFrame(columns=['class', 'position'])
 
         for i in range( len(ssb) ):
-            current_orf = ssb.loc[i]['geneID']
+            current_orf = ssb.loc[i]['ORF']
             if current_orf in data_mc.keys():
 
-                current_start = ssb.loc[i]['site_start']
-                current_order = ssb.loc[i]['order']
+                current_start = ssb.loc[i]['Start']
+                current_order = ssb.loc[i]['Order']
                 current_kmertable = kmertable[kmertable['ORF']==current_orf]
 
                 current_mc = data_mc[current_orf]
@@ -80,16 +83,16 @@ def test_ssb(kmertable, data_mc, data_mm, ssb):
 
                     if len(current_hi) > 0:
                         current_hi_pos = np.array(current_hi['position']) - current_start
-                        current_hi_pos = current_hi_pos[current_hi_pos > 0]		# only downstream, i.e. translated after
-                        current_hi_pos = current_hi_pos[current_hi_pos < L]		# limit analysis to 70 positions downstream, i.e. ~35 for tunnel plus some
+                        current_hi_pos = current_hi_pos[current_hi_pos > 0]		
+                        current_hi_pos = current_hi_pos[current_hi_pos < L]		
                         if len(current_hi_pos) > 0:
                             for pos in current_hi_pos:
                                 local_class.loc[len(local_class)] = (1, pos)
 
                     if len(current_lo) > 0:
                         current_lo_pos = np.array(current_lo['position']) - current_start
-                        current_lo_pos = current_lo_pos[current_lo_pos > 0]		# only downstream, i.e. translated after
-                        current_lo_pos = current_lo_pos[current_lo_pos < L]		# limit analysis to 70 positions downstream, i.e. ~35 for tunnel plus some
+                        current_lo_pos = current_lo_pos[current_lo_pos > 0]		
+                        current_lo_pos = current_lo_pos[current_lo_pos < L]		
                         if len(current_lo_pos) > 0:
                             for pos in current_lo_pos:
                                 local_class.loc[len(local_class)] = (0, pos)
@@ -110,7 +113,8 @@ def test_ssb(kmertable, data_mc, data_mm, ssb):
     	                    'firstssb': list(result_onlyfirst), 
                             'allssb': list(result_all), 
                             'rand_mean': list(rand_mean), 
-                            'rand_sd': list(rand_sd) } )  
+                            'rand_sd': list(rand_sd) 
+                            } )  
     resultDF.to_csv("../data/figures/figure5/ssb_enrichment.txt", header=True, index=False, sep='\t')
 
     
@@ -120,7 +124,9 @@ def test_ssb(kmertable, data_mc, data_mm, ssb):
 
 
    
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ 
+
+
+
 def test_domains(kmertable, data_mc, data_mm, domains, ssb):
     """
     get enrichment/density profiles of RD outside tunnel of domainboundaries
@@ -142,6 +148,7 @@ def test_domains(kmertable, data_mc, data_mm, domains, ssb):
 
         output = np.zeros(( 30000, L ))			# initialize with some large value
         i = 0
+        tunnel = 35
         for orf in domains.keys():
             if orf in data_mc.keys():
                 current_domains = domains[orf]
@@ -150,12 +157,12 @@ def test_domains(kmertable, data_mc, data_mm, domains, ssb):
                 current_mc[current_mm == False] = np.nan 
             
                 if chap: 									# only domain boundaries before any SSB binding site
-                    current_ssb = ssb[ssb['geneID']==orf]
-                    current_ssb_pos = np.array(current_ssb['site_start'])
+                    current_ssb = ssb[ssb['ORF']==orf]
+                    current_ssb_pos = np.array(current_ssb['Start'])
                     filtered_domains = []
                     if current_domains != 'none' and len(current_ssb_pos) > 0:
                         for domain in list(current_domains):
-                            current_dists = int(domain) - current_ssb_pos
+                            current_dists = int(domain) - (current_ssb_pos - tunnel)
                             if np.all(current_dists > 0):
                                 filtered_domains.append(domain)    
                         if len(filtered_domains) > 0:
@@ -258,6 +265,28 @@ def test_domains(kmertable, data_mc, data_mm, domains, ssb):
 
 
 
+def ssb_order(ssbDF):
+    """
+    add column on number of domains to use previous code
+    """
+
+    order = np.zeros(( len(ssbDF) ), dtype=int)
+
+    previous = None
+    current = 1
+    for i in range(len(ssbDF)):
+        current_orf = ssbDF.iloc[i]['ORF']
+        if current_orf != previous:
+            current = 1
+        elif current_orf == previous:
+            current += 1
+        order[i] = current
+        previous = current_orf
+
+    ssbDF.insert(4, 'Order', list(order) )
+
+    return ssbDF
+
 
 
 
@@ -270,10 +299,15 @@ if __name__ == '__main__':
 
     # load auxiliary data -------------------------------------------
     domainboundaries = pickle.load(open("../data/accessory/domainboundaries.pkl", "rb"))
-    ssb_binding = pd.read_csv("../data/accessory/ssb_biding_split_df.csv")
+    ssb_binding = pd.read_csv("../data/accessory/ssb_peaks.txt", header=0, index_col=False, sep='\t')
+    ssb_binding = ssb_order(ssb_binding)
    
     # load DT sequence data -----------------------------------------
-    kmers_DT   = pd.read_csv("../data/figures/figure3/kmer_filtered.txt", header=0, index_col=False, sep='\t')
+    kmers = pd.read_csv("../data/figures/figure3/kmer_all.txt", header=0, index_col=False, sep='\t')
+    kmers_DT   = kmers[kmers['threshold']==1][['ORF', 'kmer', 'position', 'class']]
+
+
+
 
 
     # FUNCTIONS START HERE ------------------------------------------

@@ -1,5 +1,4 @@
 # figure 5 panels
-# nov 2019
 
 library(ggplot2)
 library(reshape2)
@@ -8,8 +7,10 @@ library(reshape2)
 
 # A --------------------------------------------------------------------------------------------------------
 ssb <- as.data.frame(read.table("data/figures/figure5/ssb_enrichment.txt", header=T, sep='\t'))
+ssb$position <- ssb$position - 30
 ssb.DTkmers <- as.data.frame( read.table('data/figures/figure5/ssb.DTkmers', header=T, sep='\t') )
-ssbpoly <- data.frame(id = rep(c("site", "tunnel"), each=4), x = c(0, 10, 10, 0, 10, 45, 45, 10), y = c(rep(c(0, 0.002), each=2), rep(c(0,0.002),each=2)) )
+ssb.DTkmers$position <- ssb.DTkmers$position - 30
+ssbpoly <- data.frame(id = rep(c("site"), each=2), x = c(0, 7, 7, 0), y = c(rep(c(0, 0.002), each=2) ) )
 
 
 svg(file = "figures/figure5/A_ssbbinding.svg", height = 5, width = 7)
@@ -19,8 +20,8 @@ ggplot(ssb, aes(x=position)) +
   geom_line(aes(x=position, y=firstssb), color="red", size=1.5) + 
   geom_line(aes(x=position, y=allssb), color="orange", size=1) + 
   theme_classic() + 
-  lims(x=c(0,70), y=c(0, 0.03)) + 
-  labs(x="Distance from binding site", y="Avg. consensus RD") +
+  lims(x=c(-30,40), y=c(0, 0.05)) + 
+  labs(x="Position relative to binding", y="Avg. consensus RD") +
   geom_freqpoly(inherit.aes=F, data=ssb.DTkmers, aes(x=position, y=..density.., color=factor(class) ), 
                 linetype=c("twodash"), binwidth=3, show.legend = FALSE) +
   scale_color_manual(values=c("grey20", "grey60")) +
@@ -29,7 +30,7 @@ ggplot(ssb, aes(x=position)) +
     axis.text = element_text(size=32),
     text = element_text(size=32)
   ) + 
-  geom_segment(aes(x=0, xend=70, y=0.001, yend=0.001), arrow=NULL)  + 
+  geom_segment(aes(x=-30, xend=40, y=0.001, yend=0.001), arrow=NULL)  + 
   geom_polygon(data=ssbpoly, inherit.aes=F, aes(x=x, y=y, fill=id), show.legend= FALSE) + 
   scale_fill_manual(values=(c("gold", "#555555")))
 
