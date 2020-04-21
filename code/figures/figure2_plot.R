@@ -8,7 +8,6 @@ library(RColorBrewer)
 library(tidyverse)
 library(pROC)
 
-
 # A ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 TR_consensus <- as.data.frame( read.table("data/figures/figure2/codon_rates_consensus.txt", header=T, sep='\t') )
 TR_consensus$nopt <- as.factor( as.numeric( TR_consensus$tAI <= quantile(TR_consensus$tAI, 0.25 ) ) )
@@ -17,7 +16,7 @@ TR_consensus$Codon <- factor(TR_consensus$Codon, levels=TR_consensus$Codon[order
 TR_consensus$rank <- 1:nrow(TR_consensus)
 
 
-svg(file = "figures/figure2/A_codonTR.svg", height = 5, width = 8)
+svg(file = "figures/figure2/A_codonTR.svg", height = 5, width = 8)  # was height=5
 
 ggplot(TR_consensus, aes(x=Codon, y=median_mc)) + 
   #geom_hline(aes(yintercept = mean(median_mc)), size=0.5, linetype="twodash" ) + 
@@ -40,7 +39,65 @@ dev.off()
 
 
 
+# companion supplementary figure, larger & with more details
 
+gencode = data.frame(
+  "codon"= c('TTT', 'TTC', 'TTA', 'TTG', 'TCT', 'TCC', 'TCA', 'TCG', 'TAT', 'TAC', 'TAA', 'TAG', 'TGT', 'TGC', 'TGA', 'TGG', 
+             'CTT', 'CTC', 'CTA', 'CTG', 'CCT', 'CCC', 'CCA', 'CCG', 'CAT', 'CAC', 'CAA', 'CAG', 'CGT', 'CGC', 'CGA', 'CGG',
+             'ATT', 'ATC', 'ATA', 'ATG', 'ACT', 'ACC', 'ACA', 'ACG', 'AAT', 'AAC', 'AAA', 'AAG', 'AGT', 'AGC', 'AGA', 'AGG', 
+             'GTT', 'GTC', 'GTA', 'GTG', 'GCT', 'GCC', 'GCA', 'GCG', 'GAT', 'GAC', 'GAA', 'GAG', 'GGT', 'GGC', 'GGA', 'GGG'),
+  "aa" = c('F', 'F', 'L', 'L', 'S', 'S', 'S', 'S', 'Y', 'Y', '*', '*', 'C', 'C', '*', 'W', 
+           'L', 'L', 'L', 'L', 'P', 'P', 'P', 'P', 'H', 'H', 'Q', 'Q', 'R', 'R', 'R', 'R', 
+           'I', 'I', 'I', 'M', 'T', 'T', 'T', 'T', 'N', 'N', 'K', 'K', 'S', 'S', 'R', 'R', 
+           'V', 'V', 'V', 'V', 'A', 'A', 'A', 'A', 'D', 'D', 'E', 'E', 'G', 'G', 'G', 'G')
+)
+
+result <- matrix(0, nrow=20, ncol=61)  
+aminos <- as.character(sort(unique(gencode$aa)))[-1]
+for ( i in 1:length(aminos) ){
+  aa = aminos[i] 
+  current_codons <- as.character( gencode[gencode$aa == aa, 1] )
+  for ( j in 1:length(current_codons) ){
+    codon <- current_codons[j]
+    current_position <- which(TR_consensus$Codon == codon)
+    result[i,current_position] <- 1
+    nopt <- TR_consensus[TR_consensus$Codon==codon,9]
+    if (nopt == 1){
+      result[i,current_position] <- 2
+    }
+  }
+}
+result <- t(result)
+colnames(result) <- aminos
+syncodons <- as.data.frame(result)
+syncodons$codon <- factor(TR_consensus$Codon, levels=TR_consensus$Codon[order.TR])
+syncodons_m <- melt(syncodons)
+
+
+
+svg(file = "figures/figure2/SUPPL_syncodons.svg", height = 4, width = 8)
+
+grid <- data.frame(pos=c(1:20))
+
+ggplot(syncodons_m) + 
+  geom_point(aes(x=codon, y=variable, color=factor(value) )) + 
+  geom_hline(data=grid, aes(yintercept = pos),  size=0.1) +
+  scale_color_manual(values=c("white", "black", "red")) + 
+  theme_classic() + 
+  labs(x="", y="") +
+  theme(
+    legend.position = 'none', 
+    text = element_text(size=20),
+    axis.text.y = element_text(size=16), 
+    axis.ticks.x = element_blank(), 
+    axis.line.x = element_blank(), 
+    axis.ticks.y = element_blank(), 
+    axis.text.x = element_blank()
+  )
+
+dev.off()
+
+wilcox.test(TR_consensus$median_mc[TR_consensus$nopt==0], TR_consensus$median_mc[TR_consensus$nopt==1])
 # B ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 CTR <- read.table("data/figures/figure2/codonrates_all.txt", header=T, sep='\t')
 CTR$nopt <- as.numeric( CTR$tAI <= quantile(CTR$tAI, 0.25 ) )
@@ -73,6 +130,8 @@ for (i in 1:20){
   roc_df <- rbind(roc_df, myroc_df )
   result[i] <- myroc$auc
 }
+result.inddatasets <- result  # used for suppl figure!
+
 
 roc_mc_rev <- reverse_rocdf(roc_mc)
 roc_mc_rev$class <- rep("MC",length(roc_mc_rev$specificities))
@@ -167,7 +226,8 @@ ggplot(cdr_cons, aes(x=median)) +
 dev.off()
 
 
-
+wilcox.test(cdr_cons$median[inhib_idx], cdr_cons$median[-inhib_idx])
+#W = 36722, p-value = 1.321e-06
 
 
 
@@ -265,4 +325,24 @@ ggplot(RD.norm, aes(x=RD, color=class)) +
     legend.position = c(0.75, 1)
   )
  
+dev.off()
+
+
+
+# SUPPL ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+coverage <- read.table("data/figures/figure2/coverage.txt", header=T)
+coverage$auc <- result.inddatasets
+
+svg(file = "figures/figure2/SUPPL_coverage.svg", height = 4, width = 4)
+
+ggplot(coverage) + 
+  geom_point(aes(x=auc, y=coverage), size=1.8) + 
+  labs(x="AUC", y="Coverage") + 
+  theme_classic() + 
+  theme(
+    text = element_text(size=20),
+    axis.text = element_text(size=18)
+  )
+
 dev.off()

@@ -102,7 +102,7 @@ def count_redundant(genelist, codon_seqs, list_redundant):
     trim = 20
 
     for ix, orf in enumerate(genelist):
-        #print(ix, orf)        
+        #print(ix, orf)
         current_seq = codon_seqs[orf]
         current_count = 0
         for pos in range(trim, len(current_seq) - trim - 2 ):
@@ -130,7 +130,6 @@ def kmer_density(kmertable, codon_seqs, data_mm):
     counts = pd.DataFrame(columns=['ORF', 'redundant', 'total', 'high', 'low', 'length'])
     
     for orf in list_orf_all:
-
         current_total = 0
         current_high = 0
         current_low = 0
@@ -288,12 +287,45 @@ def compile_significants(redundant_df, DT_df, DTmod_hi_df, DTmod_lo_df, DTnmod_h
 
 
 
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+def expressionDF(list_orflist, list_labels, yeast_pax):
+    """
+    parse substrate and protein abundance data into DF
+    list_orflist: list of lists of orfs
+    list_labels: list of labels for plotting, has to be same length
+    yeast_pax: PAX-DB data
+    """
+
+    abundanceDF = pd.DataFrame(columns=['ORF', 'category', 'abundance'])
+
+    N = len(list_orflist)
+
+    for i in range(N):
+        current_orflist = list_orflist[i]
+        current_label = list_labels[i]
+
+        for orf in current_orflist:
+            if orf in list(yeast_pax['ORF']):
+                current_abundance = yeast_pax[yeast_pax['ORF']==orf]['abundance'].item() 
+                abundanceDF.loc[len(abundanceDF)] = (orf, current_label, current_abundance)
+                print(orf, current_label, current_abundance)
+
+    abundanceDF.to_csv("../data/figures/figure6/SUPPL_abundance.txt", sep='\t', header=True, index=False)
+
+
+
 
 if __name__ == '__main__':
 
     # load data
     mm_consensus = pickle.load(open("../data/processed/mm_consensus.pkl", 'rb'))
     sequence_codons = pickle.load(open('../data/processed/yeast_codons.pkl', 'rb'))
+
+    pax = pd.read_csv("../data/accessory/yeast_paxdb.txt", header=11, sep='\t', index_col=False)
+    pax['ORF'] = [entry.split('.')[1] for entry in list(pax['string_external_id'])]
+    pax = pax[['ORF', 'abundance']]
+
+
 
     # load DT sequence data -----------------------------------------
     kmers_all  = pd.read_csv("../data/figures/figure3/kmer_all.txt", header=0, index_col=False, sep='\t')
@@ -314,12 +346,15 @@ if __name__ == '__main__':
 
 
     #run GO analysis through webserver API and combine results
-    result_redundant_enriched  = run_GProfiler(list_redundant_enriched, "../data/figures/figure6/GO_redundant_enriched.txt")
-    result_DT_enriched         = run_GProfiler(list_DT_enriched, "../data/figures/figure6/GO_DT_enriched.txt")
-    result_DTmod_high          = run_GProfiler(list_DTmod_high, "../data/figures/figure6/GO_DTmod_high.txt")
-    result_DTmod_low           = run_GProfiler(list_DTmod_low, "../data/figures/figure6/GO_DTmod_low.txt")
-    result_DTnmod_high         = run_GProfiler(list_DTnmod_high, "../data/figures/figure6/GO_DTnmod_high.txt")
-    result_DTnmod_low          = run_GProfiler(list_DTnmod_low, "../data/figures/figure6/GO_DTnmod_low.txt")
+#    result_redundant_enriched  = run_GProfiler(list_redundant_enriched, "../data/figures/figure6/GO_redundant_enriched.txt")
+#    result_DT_enriched         = run_GProfiler(list_DT_enriched, "../data/figures/figure6/GO_DT_enriched.txt")
+#    result_DTmod_high          = run_GProfiler(list_DTmod_high, "../data/figures/figure6/GO_DTmod_high.txt")
+#    result_DTmod_low           = run_GProfiler(list_DTmod_low, "../data/figures/figure6/GO_DTmod_low.txt")
+#    result_DTnmod_high         = run_GProfiler(list_DTnmod_high, "../data/figures/figure6/GO_DTnmod_high.txt")
+#    result_DTnmod_low          = run_GProfiler(list_DTnmod_low, "../data/figures/figure6/GO_DTnmod_low.txt")
 
 
-    compile_significants(result_redundant_enriched, result_DT_enriched, result_DTmod_high, result_DTmod_low, result_DTnmod_high, result_DTnmod_low)
+#    compile_significants(result_redundant_enriched, result_DT_enriched, result_DTmod_high, result_DTmod_low, result_DTnmod_high, result_DTnmod_low)
+
+
+    expressionDF([list_redundant_enriched, list_DT_enriched, list_DTmod_high, list_DTmod_low, list_DTnmod_high, list_DTnmod_low], ['Redundant', 'DT', 'DTmod_high', 'DTmod_low', 'DTnmod_high', 'DTnmod_low'], pax)

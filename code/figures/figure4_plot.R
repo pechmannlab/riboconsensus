@@ -3,7 +3,7 @@
 
 library(ggplot2)
 library(reshape2)
-
+library(cowplot)
 
 
 # Figure 4A ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -30,7 +30,7 @@ ggplot(clusters_m, aes(x=category, y=value, fill=variable)) +
 
 dev.off()
 
-
+#fisher.test(clusters[,c(2,3)])$p.value
 
 # Figure 4B ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 DTbias <- read.table("data/figures/figure4/cluster_kmer_position.txt", header=T, sep='\t')
@@ -97,6 +97,63 @@ ggplot(data=dataDT_m, aes(x=feature, y=value, fill=variable)) +
         legend.text = element_text(size=24),
         legend.title = element_blank(),
         legend.position = c(0.8,0.8)
+  )
+
+dev.off()
+
+
+
+
+# SUPPL A ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+cluster_lenbias <- read.table("data/figures/figure4/suppl_cluster_kmer_length.txt", header=T)
+
+plot.hi <- ggplot(cluster_lenbias) + 
+  geom_point(aes(x=length, y=nclust_hi)) + 
+  labs(x="Length", y="Number of high clusters") + 
+  theme_classic() + 
+  theme(
+    text = element_text(size=16)
+  )
+
+plot.lo <- ggplot(cluster_lenbias) + 
+  geom_point(aes(x=length, y=nclust_low)) + 
+  labs(x="Length", y="Number of low clusters") + 
+  theme_classic() + 
+  theme(
+    text = element_text(size=16)
+  )
+
+plot.cor <- ggplot(cluster_lenbias) + 
+  geom_point(aes(x=nclust_hi, y=nclust_low)) + 
+  labs(x="Number of high clusters", y="Number of low clusters") + 
+  theme_classic() + 
+  theme(
+    text = element_text(size=16)
+  )
+
+
+svg(file = "figures/figure4/SUPPL_length_clusters.svg", height = 3, width = 8)
+
+plot_grid(plot.hi, plot.lo, plot.cor, labels ="", ncol = 3, align = 'h')
+
+dev.off()
+
+
+
+
+svg(file = "figures/figure4/SUPPL_position_clusters.svg", height = 4, width =6)
+
+cluster_posbias <- read.table("data/figures/figure4/suppl_DT_clusters.txt", header=T)
+
+ggplot(cluster_posbias) + 
+  geom_density(aes(x=rel_position, color=class), size=1.5) + 
+  scale_color_manual(values=c("blue", "gold")) + 
+  theme_classic() + 
+  labs(x="Relative position", y="Density") + 
+  theme(
+    text = element_text(size=18), 
+    legend.title = element_blank()
   )
 
 dev.off()

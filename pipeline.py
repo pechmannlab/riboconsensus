@@ -1,4 +1,3 @@
-
 import os, sys
 import numpy as np
 import pandas as pd
@@ -267,7 +266,7 @@ def parse_dataframes(genome_gtf, sralist):
     scikit_data_dict = import_scikit_data(sralist)
     scikit_data_mat, seq_codons_dict, seq_aa_dict = build_mat_scikit_strandOriented(sralist, scikit_data_dict)
 
-    with open('../data/processed/scikit_mat.pkl', 'wb') as f:
+    with open('../data/processed/scikit_mat_pre.pkl', 'wb') as f:
     	pickle.dump(scikit_data_mat, f)
 
     with open('../data/processed/scikit_codonseq.pkl', 'wb') as f_seq:
@@ -291,7 +290,7 @@ def build_mm_df(sralist):
         """
         
         nts_array = np.array(nts_array)
-        codon_array = np.sum( np.reshape(A, (int(np.floor(nts_array[1]/3)),3) ), 1)/3.
+        codon_array = np.sum( np.reshape(nts_array, (int(np.floor(len(nts_array)/3)),3) ), 1)/3.
 
         return codon_array
 

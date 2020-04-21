@@ -344,18 +344,25 @@ def test_positionbias(kmertable, data_mc, data_mm):
     reference_seq = SeqIO.to_dict(SeqIO.parse('../data/reference/orf_coding.fasta', "fasta"))
 
     resultDF = pd.DataFrame(columns=['class', 'position', 'mc'])
+    positionDF = pd.DataFrame(columns=['orf', 'length', 'class', 'position', 'rel_position', 'mc'])
     for i in range(len(kmertable)):
         current_orf = kmertable.iloc[i]['ORF']
         current_pos = kmertable.iloc[i]['position']
         current_class = kmertable.iloc[i]['class']
         current_mc = np.mean( data_mc[current_orf][current_pos:(current_pos+3)] )
 
-        current_len = np.floor( len(reference_seq[current_orf]) / 3. )  
+        current_len = np.floor( len(reference_seq[current_orf]) / 3. )
+        current_relpos = current_pos / float(current_len)  
      
         if current_class == 1:
             resultDF.loc[len(resultDF)] = ("pos"+str(current_class), current_pos, current_mc)
+            positionDF.loc[len(positionDF)] = (current_orf, current_len, "pos"+str(current_class), current_pos, current_relpos, current_mc)
    
+        elif current_class == 0:
+            positionDF.loc[len(positionDF)] = (current_orf, current_len, "pos"+str(current_class), current_pos, current_relpos, current_mc)
+
     resultDF.to_csv("../data/figures/figure4/DT_clusters.txt", header=True, index=False, sep='\t')
+    positionDF.to_csv("../data/figures/figure4/suppl_DT_clusters.txt", header=True, index=False, sep='\t')
 
 
     def bg_positionbias(data_mc, data_mm):
@@ -369,6 +376,7 @@ def test_positionbias(kmertable, data_mc, data_mm):
         kmer = 3
 
         resultDF = pd.DataFrame(columns=['class', 'position', 'mc'])
+        positionDF = pd.DataFrame(columns=['class', 'position', 'rel_position', 'mc'])
 
         list_orfs = list( data_mc.keys() )
 
@@ -383,6 +391,8 @@ def test_positionbias(kmertable, data_mc, data_mm):
             for pos in range( trim, len(current_consensus) - (trim + kmer) ):	# omit first/last 20 positions and allow for kmer length
                 current_score = np.mean(current_consensus[pos:pos+kmer])
                 current_pos = pos #/ len(current_consensus)
+                current_relpos = pos / len(current_consensus)
+
  
                 if current_score > current_theta_hi90:
                     resultDF.loc[len(resultDF)] = ("bg1", current_pos, current_score) 
@@ -392,7 +402,6 @@ def test_positionbias(kmertable, data_mc, data_mm):
 
         
         resultDF.to_csv("../data/figures/figure4/bg_clusters.txt", header=True, index=False, sep='\t')
-
 
     bg_positionbias(data_mc, data_mm)
 
@@ -410,6 +419,7 @@ def test_clusterbias(kmertable, data_mc, data_mm):
         subfunction to check if there is a general position bias in the mc data
         """
 
+        reference_seq = SeqIO.to_dict(SeqIO.parse('../data/reference/orf_coding.fasta', "fasta"))
         theta = pd.read_csv("../data/figures/figure3/theta.txt", header=0, index_col=False, sep='\t')
 
         trim = 20			# omit first and last 20 codons per gene due to known biases of translation initiation and termination
@@ -417,6 +427,9 @@ def test_clusterbias(kmertable, data_mc, data_mm):
         w = 3				# 3 to either side, total window size of 7
 
         resultDF = pd.DataFrame(columns=['class', 'cluster', 'position', 'mc'])
+        lengthDF = pd.DataFrame(columns=['orf', 'length', 'nclust_hi', 'nclust_low'])
+
+        cluster_dict = {}
 
         list_orfs = list( data_mc.keys() )
 
@@ -454,13 +467,40 @@ def test_clusterbias(kmertable, data_mc, data_mm):
                 if np.sum( current_window > current_theta_hi90 ) >= 3:
                     resultDF.loc[len(resultDF)] = ("DT_cl", 1, current_pos, current_mc)
                     n_class1_clust += 1
+                    if current_orf not in list(cluster_dict.keys()):
+                        cluster_dict[current_orf] = np.array([1,0])
+                    else:
+                        current_counts = cluster_dict[current_orf]
+                        current_counts[0] += 1
+                        cluster_dict[current_orf] = current_counts
                 else:
                     resultDF.loc[len(resultDF)] = ("DT_n", 0, current_pos, current_mc)
                     n_class1_nclust += 1
+                    
+            elif current_mc < current_theta_lo10:
+                current_window = score[(current_pos-w):(current_pos+w)]
+                current_window = current_window[~np.isnan(current_window)]
+                if np.sum( current_window <= current_theta_lo10 ) >= 3:
+                    if current_orf not in list(cluster_dict.keys()):
+                        cluster_dict[current_orf] = np.array([0,1])
+                    else:
+                        current_counts = cluster_dict[current_orf]
+                        current_counts[1] += 1
+                        cluster_dict[current_orf] = current_counts
+
 
 
         resultDF.to_csv("../data/figures/figure4/cluster_kmer_position.txt", header=True, index=False, sep='\t')
-    
+ 
+
+        for orf in list(cluster_dict.keys()):
+            current_len = int( np.floor( len(reference_seq[orf]) / 3. ) )
+            current_nclust = cluster_dict[orf]
+            lengthDF.loc[len(lengthDF)] = (orf, current_len, current_nclust[0], current_nclust[1])
+        lengthDF.to_csv("../data/figures/figure4/suppl_cluster_kmer_length.txt", header=True, index=False, sep='\t')
+
+
+
         return n_class1_clust, n_class1_nclust, resultDF
 
 
@@ -552,7 +592,6 @@ if __name__ == '__main__':
         rna_file = '../data/accessory/RNA/sce_Score.tab'
         rnafold = parse_RNAfolding(rna_file, PATH_RNAfold)
 
-    ssb_binding = pd.read_csv("../data/accessory/ssb_biding_split_df.csv")
     chargedclusters = parse_charges()
     noptclusters = parse_noptclusters()
     loqate = parse_loqate('../data/accessory/loqate.txt')
@@ -577,19 +616,19 @@ if __name__ == '__main__':
     test_clusterbias(kmers_DT, scikit_consensus, mm_consensus)
 
 
-    print("Analysis of DT sequences")
-    output_DT = test_kmer(kmers_DT)
-    output_DT.to_csv("../data/figures/figure4/associations_kmers_DT.txt", header=True, index=False, sep='\t')
-    print(output_DT)
+#    print("Analysis of DT sequences")
+#    output_DT = test_kmer(kmers_DT)
+#    output_DT.to_csv("../data/figures/figure4/associations_kmers_DT.txt", header=True, index=False, sep='\t')
+#    print(output_DT)
 
 
-    print("Analysis of nDT-")
-    output_nDT_lo = test_kmer(kmers_nDT_lo)
-    output_nDT_lo.to_csv("../data/figures/figure4/associations_kmers_nDT-.txt", header=True, index=False, sep='\t')
-    print(output_nDT_lo)
+#    print("Analysis of nDT-")
+#    output_nDT_lo = test_kmer(kmers_nDT_lo)
+#    output_nDT_lo.to_csv("../data/figures/figure4/associations_kmers_nDT-.txt", header=True, index=False, sep='\t')
+#    print(output_nDT_lo)
 
 
-    print("Analysis of nDT+")
-    output_nDT_hi = test_kmer(kmers_nDT_hi)
-    output_nDT_hi.to_csv("../data/figures/figure4/associations_kmers_nDT+.txt", header=True, index=False, sep='\t')
-    print(output_nDT_hi)
+#    print("Analysis of nDT+")
+#    output_nDT_hi = test_kmer(kmers_nDT_hi)
+#    output_nDT_hi.to_csv("../data/figures/figure4/associations_kmers_nDT+.txt", header=True, index=False, sep='\t')
+#    print(output_nDT_hi)

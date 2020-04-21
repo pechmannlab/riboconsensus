@@ -76,7 +76,7 @@ kmer_summary <- data.frame(counts=c(nrow(kmer_counts),
                                     sum( kmer_counts$class == "DT" ), 
                                     sum( kmer_counts$class == "nonDT-" ),
                                     sum( kmer_counts$class == "nonDT+")), 
-                           class=c("All", "DT", "nDTlo", "nDThi"))
+                           class=c("All", "DT", "nDT_lo", "nDT_hi"))
 kmer_summary$class <- factor(kmer_summary$class, levels=kmer_summary$class)
 
 
@@ -103,7 +103,7 @@ dev.off()
 # D ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 kmer_freqs <- read.table("data/figures/figure3/kmer_frequencies.txt", header=T, sep='\t')
 kmer_freqs <- kmer_freqs[,c(1,2,5,6,3,4)]
-colnames(kmer_freqs) <- c("codon", "DT", "nDThi", "nDTlo", "redundant", "background")
+colnames(kmer_freqs) <- c("codon", "DT", "nDT_hi", "nDT_lo", "redundant", "background")
 kmer_m <- melt(kmer_freqs)
 
 
@@ -114,12 +114,56 @@ ggplot(data=kmer_m, aes(x=codon, y=value, fill=variable)) +
     theme_classic() +
     labs(x = "", y = "Frequency") +
     scale_fill_manual(values=c("orange", "#29ABE2", "#2ABE29", "grey40", "black")) + 
-    theme(axis.text.x = element_text(size=18, angle = 90, hjust = 1), 
+    theme(axis.text.x = element_text(size=18, family='Courier', angle = 90, hjust = 1), 
           axis.ticks.x = element_blank(),
           axis.line.x = element_blank(), 
           axis.text.y = element_text(size=24),
           text = element_text(size=32),
           legend.text = element_text(size=24)
           )
+
+dev.off()
+
+
+
+# SUPPL ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+redundancy <- read.table("data/figures/figure3/kmer_redundancy.txt", header=T)
+red_m <- melt(redundancy, id='length')
+
+
+svg(file = "figures/figure3/SUPPL_redundancy.svg", height = 4, width = 5)
+
+ggplot(red_m, aes(x=length, y=value+1, fill=variable)) + 
+  geom_col( position="dodge2" ) + 
+  scale_y_log10() + 
+  scale_fill_manual(values=c("grey20", "grey50", "grey80")) + 
+  labs(x="Length", y="Counts") + 
+  theme_classic()  +
+  theme(
+    text = element_text(size=20),
+    legend.title = element_blank()
+  )
+
+
+dev.off()
+
+
+redundancy_mm <- read.table("data/figures/figure3/kmer_redundancy2.txt", header=T)
+red2_m <- melt(redundancy_mm, id='length')
+
+
+svg(file = "figures/figure3/SUPPL_redundancy_MM.svg", height = 4, width = 5)
+
+ggplot(red2_m, aes(x=length, y=value+1, fill=variable)) + 
+  geom_col( position="dodge2" ) + 
+  scale_y_log10() + 
+  scale_fill_manual(values=c("grey20", "grey50", "grey80")) + 
+  labs(x="Length", y="Counts") + 
+  theme_classic() + 
+  theme(
+    text = element_text(size=20),
+    legend.title = element_blank()
+  )
 
 dev.off()

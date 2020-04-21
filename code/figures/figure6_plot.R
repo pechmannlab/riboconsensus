@@ -2,6 +2,7 @@
 
 library(ggplot2)
 library(reshape2)
+library(viridis)
 
 
 GO <- read.table("data/figures/figure6/GO_combined.txt", header=T, sep='\t', na.strings="NA")
@@ -34,5 +35,32 @@ ggplot(GOm, aes(x = variable, y = GO)) +
 dev.off()
 
 
+
+
+
+
+# --- SUPPL --------------------------------------------
+
+abundance <- read.table("data/figures/figure6/SUPPL_abundance.txt", header=T)
+abundance$category <- factor(abundance$category, levels=unique(abundance$category))
+
+svg(file = "figures/figure6/SUPPL_abundance.svg", height = 5, width = 6)
+
+ggplot(abundance, aes(x=category, y=abundance, fill=category)) + 
+  #geom_violin() + 
+  geom_boxplot() + 
+  scale_y_log10() + 
+  scale_fill_viridis_d(option = "viridis", direction=-1) +
+  labs(x="", y="Abundance") +
+  theme_classic() + 
+  theme(
+    text = element_text(size=20), 
+    axis.text.x = element_text(size=18, angle=90, hjust=1), 
+    axis.line.x = element_blank(),
+    axis.ticks.x = element_blank(), 
+    legend.position = 'none'
+    )
+
+dev.off()
 
 

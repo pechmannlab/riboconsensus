@@ -34,15 +34,20 @@ def codon_translationrates_indprofiles(data_scikit, data_mm, codon_seq):
     list_orfs = list( data_scikit.keys() )
 
     counter_cp = 0
+    coverage = np.zeros(( 20 ))
 
     for experiment in range( 20 ):
         codon_TR = [[] for i in range( len(codons_nonstop) )]
         codon2_TR = [[] for i in range( len(codon_duplets) )]
+        coverage = []
         print("Analyzing experiment", experiment)      
         for ix, orf in enumerate(list_orfs):
             current_data = data_scikit[orf]
             current_mm = data_mm[orf]
             current_seq = np.array( codon_seq[orf] )
+
+            print( np.sum( current_data[:,current_mm], 1)/np.shape(current_data[:,current_mm])[1]  )
+            #print( np.mean(current_data[current_mm]) )
 
             if current_data.shape[1] == len(current_mm):
                 for pos in range(trim,  len(current_seq) - (trim+2) ):                             
@@ -195,6 +200,27 @@ def codon_translationrates_consensus(data_consensus, data_mean, data_mm, codon_s
 
 
 
+def average_coverage(scikit_data_pre):
+    """
+    get estimate of average coverage from pre-normalized scikit data
+    """
+
+    list_orfs = list( scikit_data_pre.keys() )
+    coverage = np.zeros(( 20 ))
+
+    #loop through experiments, each in one row in data matrix
+    for experiment in range(20):
+        current_coverage = []
+        for orf in list_orfs:
+            current_profile = scikit_data_pre[orf]
+            current_profile = current_profile[experiment,:]
+            current_coverage.append( np.mean(current_profile) ) 
+        coverage[experiment] = np.mean( np.array(current_coverage) ) 
+
+    coverage_df = pd.DataFrame({'experiment': ['R'+str(i+1) for i in range(20)], 'coverage': coverage})
+    coverage_df.to_csv("../data/figures/figure2/coverage.txt", header=True, index=False, sep='\t')
+
+
 
 def data_figure2():
     """
@@ -203,6 +229,7 @@ def data_figure2():
  
     individual_df = codon_translationrates_indprofiles(scikit_data, mm_consensus, sequence_codons)
     consensus_df = codon_translationrates_consensus(scikit_consensus, scikit_mean, mm_consensus, sequence_codons)
+    average_coverage(scikit_data_pre)
 
     individual_dfT = individual_df.T
     final_df = consensus_df[['Codon', 'median_mc', 'median_mn']]
@@ -232,6 +259,7 @@ if __name__ == '__main__':
     good_inhibitory = [ "CGAATA", "GTACCG", "GTGCGA", "GTACGA", "CTGCCG", "CTGCGA", "ATACGA", "ATACGG", "AGGCGG", "CTGATA", "AGGCGA"]
       
     scikit_data = pickle.load(open("../data/processed/scikit_mat.pkl", 'rb'))
+    scikit_data_pre = pickle.load(open("../data/processed/scikit_mat_pre.pkl", 'rb'))
     mm_consensus = pickle.load(open("../data/processed/mm_consensus.pkl", 'rb'))       
     scikit_consensus = pickle.load(open("../data/processed/mc_dict.pkl", 'rb'))
     scikit_mean = pickle.load(open("../data/processed/scikit_mean.pkl", 'rb'))
@@ -239,3 +267,5 @@ if __name__ == '__main__':
 
 
     data_figure2()
+
+    

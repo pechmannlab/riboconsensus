@@ -309,7 +309,7 @@ def extract_kmers(data_mc, data_mm, codon_seqs):
 
 
 #--------------------------------------------------------------------------------------------
-def kmer_frequncies(kmertable_all, kmertable_filtered, kmertable_nonDT_hi, kmertable_nonDT_lo, data_mm, codon_seqs):
+def kmer_frequencies(kmertable_all, kmertable_filtered, kmertable_nonDT_hi, kmertable_nonDT_lo, data_mm, codon_seqs):
     """
     codon frequencies in kmers
     background: mRNA sequences of set of 'good' genes (minus multi-mapping positions)
@@ -374,6 +374,25 @@ def kmer_frequncies(kmertable_all, kmertable_filtered, kmertable_nonDT_hi, kmert
     return output
 
   
+#--------------------------------------------------------------------------------------------
+def kmer_redundancy(list_orfs, yeast_codons):
+
+    params = np.arange(3,8)
+    result5 = np.zeros(( len(params) ))
+    result10 = np.zeros(( len(params) ))
+    result20 = np.zeros(( len(params) ))
+    for ix, i in enumerate( params ):
+        current_kmer5 = count_kmer( list_orfs, yeast_codons, 5, i)
+        result5[ix] = len(current_kmer5)
+        current_kmer10 = count_kmer( list_orfs, yeast_codons, 10, i)
+        result10[ix] = len(current_kmer10)
+        current_kmer20 = count_kmer( list_orfs, yeast_codons, 20, i)
+        result20[ix] = len(current_kmer20)
+
+    result_df = pd.DataFrame({"length": list(params), "counts5": list(result5), "counts10": list(result10), "counts20": list(result20)})
+    result_df.to_csv("../data/figures/figure3/kmer_redundancy.txt", header=True, index=False, sep='\t')
+    print(result_df)
+
 
 
 
@@ -399,7 +418,9 @@ if __name__ == '__main__':
     # ~~~~~~~ FUNCTIONS START HERE
 
     compute_theta()
-   
+
+    kmer_redundancy(list(scikit_data.keys()), sequence_codons)
+
     kmer_all, kmer_DT, kmer_nonDT_hi, kmer_nonDT_lo = extract_kmers(scikit_consensus, mm_consensus,  sequence_codons)
 
-    kmer_freqs = kmer_frequncies(kmer_all, kmer_DT, kmer_nonDT_hi, kmer_nonDT_lo, mm_consensus, sequence_codons)
+    kmer_freqs = kmer_frequencies(kmer_all, kmer_DT, kmer_nonDT_hi, kmer_nonDT_lo, mm_consensus, sequence_codons)

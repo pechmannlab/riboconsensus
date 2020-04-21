@@ -7,9 +7,9 @@
 library(jsonlite)
 library(reshape2)
 library(RColorBrewer)
-library(tidyverse)
+#library(tidyverse)
 library(ggplot2)
-
+library(reshape2)
 
 
 # A ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -131,5 +131,119 @@ ggplot(dataqc, aes(x=log(EL), y=corr)) +
     text = element_text(size=32)
   ) + 
   labs(x="Average coverage (log)", y="Correlation") 
+
+dev.off()
+
+
+
+# SUPPL A ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+xv_corr_real <- read.table("data/figures/figure1/suppl_corr2mc_xv.txt", header=T, sep='\t')
+xv_corr_rand <- read.table("data/figures/figure1/suppl_corr2randmc_xv.txt")
+xv_corr_df <- data.frame(xv_corr_real$Correlation, xv_corr_rand[1:nrow(corr_real), 1])
+colnames(xv_corr_df) <- c('real', 'random')
+xv_corr_df <- melt(xv_corr_df)
+
+
+svg(file = "figures/figure1/SUPPL_correlation_consensus.svg", height = 5, width = 6)
+
+ggplot(data=xv_corr_df, aes(x=value,  fill=variable)) +
+  geom_density(alpha=0.5) +
+  labs(x = "Correlation", y = "Frequency") + 
+  theme_classic() + 
+  #scale_x_continuous(limits=c(-0.2, 0.6)) +
+  scale_fill_manual(values = c("#E31A1C", 'grey60'),
+                    name = "Data",
+                    labels = c("consensus", "random")) +
+  theme(
+    axis.text = element_text(size=32),
+    text = element_text(size=32),
+    legend.justification = c(1.1, 1.1),
+    legend.position = c(1, 1),
+    legend.title = element_blank()
+  )
+
+dev.off()
+
+
+
+# SUPPL B ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+peaks <- read.table("data/figures/figure1/suppl_peak_stats.txt", header=T)
+
+svg(file = "figures/figure1/SUPPL_peaks.svg", height = 4, width = 4)
+
+ggplot(peaks) + 
+  geom_abline(aes(intercept = 0, slope=1), size=0.5, color="red", linetype="twodash" ) +
+  geom_point(aes(x=peaks_mean/length, y=peaks_cons/length)) + 
+  labs(x="Fraction individual peaks", y="Fraction consensus peaks") + 
+  theme_classic() + 
+  theme(
+    axis.text = element_text(size=20),
+    text = element_text(size=20)
+  )
+
+dev.off()
+
+
+
+# SUPPL C ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+biswas <- read.table("data/figures/figure1/suppl_biswas.txt", header=T)
+biswas_m <- melt(biswas)
+
+svg(file = "figures/figure1/SUPPL_biswas.svg", height = 4, width = 5)
+
+ggplot(biswas_m) + 
+  geom_boxplot(aes(x=variable, y=value)) + 
+  scale_x_discrete(labels=c('th=0.001', 'th=0.01', 'th=0.00001', 'sd=1.5', 'sd=0.5', 'ca=0.9', 'ca=0.1')) + 
+  labs(x="", y="Correlation") + 
+  theme_classic() + 
+  theme(
+    text = element_text(size=20),
+    axis.text.x = element_text(size=20, angle=90, hjust=1), 
+    axis.line.x = element_blank(),
+    axis.ticks.x = element_blank()
+  )
+
+dev.off()
+
+
+# SUPPL 1bA ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+datasets <- read.table("data/figures/figure1/suppl_datasets.txt", header=T)
+datasets_m <- melt(datasets, id='ORF')
+
+svg(file = "figures/figure1/SUPPL_datasets.svg", height = 6, width = 8)
+
+ggplot(datasets_m) + 
+  geom_boxplot(aes(x=variable, y=value, fill=variable)) + 
+  labs(x="", y="Correlation") + 
+  scale_fill_viridis_d() + 
+  theme_classic() + 
+  theme(
+    text = element_text(size=20),
+    axis.text.x = element_text(size=20, angle=90, hjust=1), 
+    axis.line.x = element_blank(),
+    axis.ticks.x = element_blank(), 
+    legend.position = 'none'
+  )
+
+dev.off()
+
+
+
+# SUPPL 1bA ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+lecanda <- read.table("data/figures/figure1/suppl_lecanda.txt", header=T)
+
+svg(file = "figures/figure1/SUPPL_lecanda.svg", height = 6, width = 6)
+
+ggplot(lecanda, aes(x=Correlation)) + 
+  geom_histogram(bins=50, color="white", fill="turquoise") + 
+  labs(x="Correlation", y="Count") + 
+  theme_classic() + 
+  theme(
+    text = element_text(size=20),
+    axis.text.x = element_text(size=20, angle=90, hjust=1), 
+    axis.line.x = element_blank(),
+    axis.ticks.x = element_blank(), 
+    legend.position = 'none'
+  )
 
 dev.off()
