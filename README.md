@@ -5,7 +5,7 @@ Pedro do Couto Bordignon and Sebastian Pechmann
 Contact: sebastian@pechmannlab.net\
 Web: www.pechmannlab.net
 
-biorxiv: https://doi.org/10.1101/866582\
+biorxiv: https://doi.org/10.1101/866582 \
 Zenodo: http://doi.org/10.5281/zenodo.4472029
 
 
