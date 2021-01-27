@@ -20,5 +20,5 @@ biorxiv: https://doi.org/10.1101/866582
 * peak_synchronization.py: utilitiy functions to compute consensus ribosome density profiles
 
 
-##### update:
-January 2021: Supplementary Figure 1 is now Figure 2, the numbering of the other figures changes accordingly. Several figure panels from the supplementary figures have been integrated into the main figures. 
+##### Update January 2021: 
+Supplementary Figure 1 is now Figure 2, the numbering of the other figures changes accordingly. Several figure panels from the supplementary figures have been integrated into the main figures. 
