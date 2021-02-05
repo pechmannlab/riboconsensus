@@ -1,6 +1,9 @@
-# Inferring translational heterogeneity from ribosome profiling data
+# Inferring translational heterogeneity from S. cerevisiae ribosome profiling
 
-Pedro do Couto Bordignon and Sebastian Pechmann
+Pedro do Couto Bordignon and Sebastian Pechmann\
+FEBS J (2021)\
+doi: 10.1111/febs.15748\
+PMID: 33539640
 
 Contact: sebastian@pechmannlab.net\
 Web: www.pechmannlab.net
@@ -18,7 +21,7 @@ Zenodo: http://doi.org/10.5281/zenodo.4472029
 * figure4_funcs.py: analyses presented in Figure 4
 * figure5_funcs.py: analyses presented in Figure 5
 * figure6_funcs.py: analyses presented in Figure 6
-* peak_synchronization.py: utilitiy functions to compute consensus ribosome density profiles
+* peak_synchronization.py: utility functions to compute consensus ribosome density profiles
 
 
 ##### Update January 2021: 
