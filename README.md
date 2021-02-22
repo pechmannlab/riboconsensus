@@ -1,4 +1,4 @@
-# Inferring translational heterogeneity from S. cerevisiae ribosome profiling
+# Inferring translational heterogeneity from *Saccharomyces cerevisiae* ribosome profiling
 
 Pedro do Couto Bordignon and Sebastian Pechmann\
 FEBS J (2021)\
