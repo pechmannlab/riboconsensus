@@ -8,6 +8,7 @@ PMID: 33539640
 Contact: sebastian@pechmannlab.net\
 Web: www.pechmannlab.net
 
+Journal: https://febs.onlinelibrary.wiley.com/doi/full/10.1111/febs.15748 \
 biorxiv: https://doi.org/10.1101/866582 \
 Zenodo: http://doi.org/10.5281/zenodo.4472029
 
