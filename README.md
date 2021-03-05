@@ -6,7 +6,8 @@ doi: 10.1111/febs.15748\
 PMID: 33539640
 
 Contact: sebastian@pechmannlab.net\
-Web: www.pechmannlab.net
+Web: www.pechmannlab.net\
+ORCID: https://orcid.org/0000-0002-4356-9470
 
 Journal: https://febs.onlinelibrary.wiley.com/doi/full/10.1111/febs.15748 \
 biorxiv: https://doi.org/10.1101/866582 \
