@@ -1,7 +1,7 @@
 # Inferring translational heterogeneity from *Saccharomyces cerevisiae* ribosome profiling
 
 Pedro do Couto Bordignon and Sebastian Pechmann\
-*FEBS J* **15**, 4541 - 4559 (2021)\
+*FEBS J* **288**, 4541 - 4559 (2021)\
 doi: 10.1111/febs.15748\
 PMID: 33539640
 
